@@ -2,6 +2,7 @@ import type { OpportunityScore } from '@/types/scoring'
 import type { EnrichmentData } from '@/types/enrichment'
 import type { ScraperRegistry } from '@/types/registry'
 import type { ResumeData, UserPreferences, Site } from '@/types/job'
+import type { AuthSession } from '@/types/auth'
 
 interface CacheEntry<T> { data: T; timestamp: number }
 
@@ -59,12 +60,22 @@ export const cache = {
   async setPreferences(prefs: UserPreferences): Promise<void> {
     await chrome.storage.local.set({ user_preferences: prefs })
   },
-  async getProStatus(): Promise<{ active: boolean; expiresAt: number } | null> {
-    const result = await chrome.storage.local.get('pro_status')
-    return (result['pro_status'] as { active: boolean; expiresAt: number }) ?? null
+  // Credit management functions
+  async getCredits(): Promise<number> {
+    const result = await chrome.storage.local.get('user_credits')
+    return (result['user_credits'] as number) ?? 0
   },
-  async setProStatus(status: { active: boolean; expiresAt: number }): Promise<void> {
-    await chrome.storage.local.set({ pro_status: status })
+  async setCredits(value: number): Promise<void> {
+    await chrome.storage.local.set({ user_credits: value })
+  },
+  async addCredits(delta: number): Promise<void> {
+    const current = await this.getCredits()
+    await this.setCredits(current + delta)
+  },
+  async deductCredits(delta: number): Promise<void> {
+    const current = await this.getCredits()
+    const newVal = Math.max(0, current - delta)
+    await this.setCredits(newVal)
   },
   async getOnboardingComplete(): Promise<boolean> {
     const result = await chrome.storage.local.get('onboarding_complete')
@@ -72,5 +83,23 @@ export const cache = {
   },
   async setOnboardingComplete(): Promise<void> {
     await chrome.storage.local.set({ onboarding_complete: true })
+  },
+
+  // Auth session — stored without TTL wrapper (expiresAt embedded in the session)
+  async getAuthSession(): Promise<AuthSession | null> {
+    const result = await chrome.storage.local.get('auth_session')
+    const session = result['auth_session'] as AuthSession | undefined
+    if (!session) return null
+    if (Date.now() > session.expiresAt) {
+      await chrome.storage.local.remove('auth_session')
+      return null
+    }
+    return session
+  },
+  async setAuthSession(session: AuthSession): Promise<void> {
+    await chrome.storage.local.set({ auth_session: session })
+  },
+  async clearAuthSession(): Promise<void> {
+    await chrome.storage.local.remove('auth_session')
   },
 }

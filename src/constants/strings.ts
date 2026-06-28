@@ -59,13 +59,13 @@ export const STRINGS = {
     enrichFailed:    'Some signals unavailable',
     draftFailed:     'Message drafting is temporarily unavailable',
     linkedinLogin:   'Log into LinkedIn for recruiter intel',
-    limitReached:    'Upgrade to Pro for unlimited access',
+    limitReached:    'Buy more credits to continue',
   },
-  pro: {
-    badge:          'Pro',
-    upgrade:        'Upgrade to Pro',
-    price:          '₹299/mo',
-    freePlan:       'Free plan',
-    lookupCount:    'recruiter lookups left this month',
+  credits: {
+    badge:          'Credits',
+    purchase:        'Buy Credits',
+    price:          '₹299 per 100 credits',
+    freePlan:       'Free credits',
+    balance:    'credits remaining',
   },
 } as const

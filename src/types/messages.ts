@@ -34,4 +34,6 @@ export type AppMessage =
   | { type: 'RESUME_PARSED';        payload: ResumeData }
   | { type: 'PRO_STATUS';           payload: { active: boolean } }
   | { type: 'REGISTRY_UPDATE';      payload: ScraperRegistry }
+  | { type: 'GET_CREDITS';          payload: null }
+  | { type: 'CREDITS_STATUS';       payload: { credits: number } }
   | { type: 'ERROR';                payload: { code: string; message: string } }

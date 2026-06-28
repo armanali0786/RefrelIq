@@ -15,6 +15,8 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === 'install') {
     await chrome.storage.local.set({ scraper_registry: DEFAULT_REGISTRY, registry_version: 1 })
     await chrome.tabs.create({ url: chrome.runtime.getURL('popup/index.html') })
+    // Initialize new users with 50 free credits
+    await cache.setCredits(50)
   }
   chrome.alarms.create('registry-check', { periodInMinutes: 1440 })
 })
@@ -49,9 +51,9 @@ chrome.runtime.onMessage.addListener((
     return
   }
 
-  if (message.type === 'CHECK_PRO_STATUS') {
-    cache.getProStatus().then(s =>
-      sendResponse({ type: 'PRO_STATUS', payload: { active: s?.active ?? false } })
+  if (message.type === 'GET_CREDITS') {
+    cache.getCredits().then(credits =>
+      sendResponse({ type: 'CREDITS_STATUS', payload: { credits } })
     )
     return true
   }
@@ -93,8 +95,16 @@ async function handleDraftRequest(
   tabId?: number,
 ) {
   if (!tabId) return
+  // Ensure user has enough credits before drafting
+  const currentCredits = await cache.getCredits()
+  if (currentCredits < 1) {
+    chrome.tabs.sendMessage(tabId, { type: 'ERROR', payload: { code: 'INSUFFICIENT_CREDITS', message: 'Not enough credits. Please purchase more.' } })
+    return
+  }
   try {
     const draft = await draftOutreachMessage(payload)
+    // Deduct one credit per draft
+    await cache.deductCredits(1)
     chrome.tabs.sendMessage(tabId, { type: 'DRAFT_RESULT', payload: draft })
   } catch {
     chrome.tabs.sendMessage(tabId, { type: 'ERROR', payload: { code: 'DRAFT_FAILED', message: 'Message drafting is temporarily unavailable' } })

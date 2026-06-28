@@ -55,7 +55,7 @@ export function RecruiterTab() {
       {draftOpen && <MessageDraft />}
 
       <div style={{ textAlign: 'center', fontSize: 12, color: '#8A8785', marginTop: 18 }}>
-        {STRINGS.pro.freePlan} · 4 {STRINGS.pro.lookupCount}
+        {STRINGS.credits.freePlan} · 4 {STRINGS.recruiter.limitReached}
       </div>
     </div>
   )

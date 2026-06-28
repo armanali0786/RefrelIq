@@ -57,7 +57,7 @@ async function processJobPage(config: SiteConfig) {
 function injectOverlay() {
   if (mountedOverlay && document.getElementById('joblens-root')) return
   const script = document.createElement('script')
-  script.src   = chrome.runtime.getURL('dist/content_scripts/overlay.js')
+  script.src   = chrome.runtime.getURL('src/content_scripts/overlay.ts')
   script.type  = 'module'
   document.head.appendChild(script)
   mountedOverlay = true
